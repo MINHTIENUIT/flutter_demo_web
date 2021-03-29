@@ -26,7 +26,7 @@ class _SplashState extends State<SplashScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("Welcome to App"),
+          Text("Welcome to App - splash page"),
           Divider(
             height: 20,
           ),

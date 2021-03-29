@@ -16,6 +16,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   GoogleSignInAccount account;
   GoogleSignInAuthentication authen;
   bool gotProfile = false;
+  UserProfile userProfile = UserProfile();
 
   @override
   void initState() {
@@ -28,18 +29,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Material(
       child: gotProfile
-          ? Column(
-              children: [
-                Text(
-                  "Welcome to the App",
-                  style: TextStyle(fontSize: 20),
-                ),
-                ElevatedButton(onPressed: onPressLogout, child: Text("Logout"))
-              ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${userProfile.name}",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  Text(
+                    "${userProfile.email}",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  Text(
+                    "${userProfile.token}",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  ElevatedButton(
+                      onPressed: onPressLogout, child: Text("Logout"))
+                ],
+              ),
             )
-          : Center(
-              child: ElevatedButton(
-                  onPressed: onPressLogout, child: Text("Logout"))),
+          : Center(),
     );
   }
 
@@ -54,11 +65,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void getProfile() async {
-    account = await _googleSignIn.onCurrentUserChanged.first;
-    authen = await account.authentication;
+    bool isSigned = await _googleSignIn.isSignedIn();
+    if (isSigned) {
+      account = await _googleSignIn.signInSilently();
+      authen = await account.authentication;
+      userProfile.email = account.email;
+      userProfile.name = account.displayName;
+      userProfile.token = authen.accessToken;
+    }
+    // authen = await account.authentication;
 
     setState(() {
       gotProfile = true;
     });
   }
+}
+
+class UserProfile {
+  var email;
+  var name;
+  var token;
 }
