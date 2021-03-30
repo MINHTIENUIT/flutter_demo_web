@@ -58,10 +58,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     await _googleSignIn.signOut();
     bool isSigned = await _googleSignIn.isSignedIn();
     if (!isSigned) {
-      Navigator.pushReplacementNamed(context, "/");
-    } else {
-      print("Error when logout");
+      await _googleSignIn.signOut();
     }
+    Navigator.pushReplacementNamed(context, "/");
   }
 
   void getProfile() async {
