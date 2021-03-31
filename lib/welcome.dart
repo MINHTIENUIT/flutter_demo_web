@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -7,20 +7,11 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: <String>[
-      'email',
-      'https://www.googleapis.com/auth/contacts.readonly',
-    ],
-  );
-  GoogleSignInAccount account;
-  GoogleSignInAuthentication authen;
   bool gotProfile = false;
   UserProfile userProfile = UserProfile();
 
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState() {    
     getProfile();
     super.initState();
   }
@@ -55,24 +46,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void onPressLogout() async {
-    await _googleSignIn.signOut();
-    bool isSigned = await _googleSignIn.isSignedIn();
-    if (!isSigned) {
-      await _googleSignIn.signOut();
+    await FirebaseAuth.instance.signOut();
+      
+    if (FirebaseAuth.instance.currentUser != null) {
+      await FirebaseAuth.instance.signOut();
     }
     Navigator.pushReplacementNamed(context, "/");
   }
 
   void getProfile() async {
-    bool isSigned = await _googleSignIn.isSignedIn();
-    if (isSigned) {
-      account = await _googleSignIn.signInSilently();
-      authen = await account.authentication;
+    User account = FirebaseAuth.instance.currentUser;
+    if (account != null) {            
       userProfile.email = account.email;
       userProfile.name = account.displayName;
-      userProfile.token = authen.accessToken;
+      userProfile.token = account.getIdToken();
     }
-    // authen = await account.authentication;
 
     setState(() {
       gotProfile = true;

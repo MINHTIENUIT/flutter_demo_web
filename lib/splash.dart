@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -7,39 +8,37 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashState extends State<SplashScreen> {
-  GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: <String>[
-      'email',
-      'https://www.googleapis.com/auth/contacts.readonly',
-    ],
-  );
 
   @override
   void initState() {
+    Firebase.initializeApp();
     checkSignInStatus();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text("Welcome to App - splash page"),
-          Divider(
-            height: 20,
-          ),
-          CircularProgressIndicator()
-        ],
-      ),
+    return FutureBuilder(
+        future: Firebase.initializeApp(),
+        builder: (BuildContext context, AsyncSnapshot<FirebaseApp> snapshot) {
+          return Material(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Welcome to App - splash page"),
+                SizedBox(height: 20,),
+                CircularProgressIndicator()
+              ],
+            ),
+          );
+        }
     );
   }
 
   void checkSignInStatus() async {
     await Future.delayed(Duration(seconds: 2));
-    bool isSignedIn = await _googleSignIn.isSignedIn();
-    if (isSignedIn) {
+    User currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
       print("Signed");
       Navigator.pushReplacementNamed(context, "/welcome");
     } else {
