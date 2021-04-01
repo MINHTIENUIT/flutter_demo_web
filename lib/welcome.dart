@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -7,20 +9,12 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: <String>[
-      'email',
-      'https://www.googleapis.com/auth/contacts.readonly',
-    ],
-  );
-  GoogleSignInAccount account;
-  GoogleSignInAuthentication authen;
+
   bool gotProfile = false;
   UserProfile userProfile = UserProfile();
 
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState() {    
     getProfile();
     super.initState();
   }
@@ -41,10 +35,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     "${userProfile.email}",
                     style: TextStyle(fontSize: 20),
                   ),
-                  Text(
+                  Expanded(
+                    child: Text(
                     "${userProfile.token}",
                     style: TextStyle(fontSize: 20),
-                  ),
+                    )
+                  ),                  
                   ElevatedButton(
                       onPressed: onPressLogout, child: Text("Logout"))
                 ],
@@ -55,24 +51,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void onPressLogout() async {
-    await _googleSignIn.signOut();
-    bool isSigned = await _googleSignIn.isSignedIn();
-    if (!isSigned) {
-      await _googleSignIn.signOut();
-    }
-    Navigator.pushReplacementNamed(context, "/");
+    await FirebaseAuth.instance.signOut();
+    if (FirebaseAuth.instance.currentUser == null)
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn().signOut();
+      await FacebookAuth.instance.logOut();
+      Navigator.pushReplacementNamed(context, "/");
   }
 
-  void getProfile() async {
-    bool isSigned = await _googleSignIn.isSignedIn();
-    if (isSigned) {
-      account = await _googleSignIn.signInSilently();
-      authen = await account.authentication;
-      userProfile.email = account.email;
-      userProfile.name = account.displayName;
-      userProfile.token = authen.accessToken;
-    }
-    // authen = await account.authentication;
+  void getProfile() async {    
+    if (FirebaseAuth.instance.currentUser != null) {
+      var account = FirebaseAuth.instance.currentUser;      
+
+      userProfile.email = account?.email;
+      userProfile.name = account?.displayName;            
+      userProfile.token = await account?.getIdToken();
+      print(userProfile.token);
+    }    
 
     setState(() {
       gotProfile = true;
